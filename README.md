@@ -1,10 +1,11 @@
 ## Incident Response System
 ### Overview
-This Incident Response System is a simple, Flask-based web application that logs, manages, and retrieves cybersecurity incidents. It enables cybersecurity professionals or teams to document incidents such as network failures, unauthorized access attempts, system crashes, etc. The system stores incident data in a JSON file for persistence and supports a RESTful API for easy integration with other tools.
+This application is an update from its old version and now features an added authentication functionality. As previously stated in the initial commit it uses a simple REST API for logging and retrieving cybersecurity incidents. The application is built using Flask and stores incident logs in a JSON file. It now includes API key-based authentication to ensure secure access to the API endpoints.
 ### Features
 - Log Incidents: Add new cybersecurity incidents with details like type and description.
-- View Logs: Retrieve all logged incidents through a RESTful endpoint.
+- View Logs: Retrieve  all logged incidents through a RESTful endpoint.
 - JSON Storage: Store incidents in a simple JSON file for easy retrieval and management.
+- API key authentication for secure access.
 ### Installation
 Follow the steps below to set up and run the project locally.
 ### Prerequisites
@@ -47,20 +48,85 @@ curl http://127.0.0.1:5000/
 - You should see a message:
 {"message": "Welcome to the Incident Response System!"}
 
+### API Usage
+**Authentication**
+
+All API requests require the inclusion of an API key in the request header. Use the header **x-API-key** with the value set to **myownapi** (default API key).
+
 ### Endpoints
-**1. GET /logs**
 
-Retrieve a list of all logged incidents.
+**1. Add an Incident (POST /add-incident)**
 
+Logs a new incident by providing incident details in JSON format.
+
+**Request Headers:**
+```bash
+x-api-key: <your-api-key>
+```
+```bash
+Content-Type: application/json
+```
+**Request Body:**
+```bash
+{
+  "type": "<incident type>",
+  "description": "<incident description>"
+}
+```
+- Linux/Mac:
+```bash
+curl -X POST http://127.0.0.1:5000/add-incident \
+-H "x-api-key: myownapi" \
+-H "Content-Type: application/json" \
+-d '{"type": "Unauthorized Access", "description": "Failed login attempt detected"}'
+```
+- Windows:
+```bash
+curl -X POST http://127.0.0.1:5000/add-incident ^
+-H "x-api-key: myownapi" ^
+-H "Content-Type: application/json" ^
+-d "{\"type\": \"Unauthorized Access\", \"description\": \"Failed login attempt detected\"}"
+```
+**Response:**
+```bash
+{
+  "status": "success",
+  "message": "Incident logged"
+}
+```
+
+**2. Retrieve Incident Logs (GET /logs)**
+
+Retrieves a list of all logged incidents.
+
+**Request Headers:**
+```bash
+x-api-key: <myownapi>
+```
+
+- Linux/Mac:
+```bash
+curl -X GET http://127.0.0.1:5000/logs -H "x-api-key: myownapi"
+```
+- Windows:
+```bash
+curl -X GET http://127.0.0.1:5000/logs -H "x-api-key: myownapi"
+```
 - Response:
-Returns a JSON array containing all incidents, or a 404 error if no incidents are logged.
-
-**2. POST /add-incident**
-
-Log a new incident by providing incident details in JSON format.
-
-- Response:
-Returns a success message if the incident is logged successfully, or an error if required fields are missing.
+```bash
+[
+  {
+    "timestamp": "2025-01-03T14:00:00.000000",
+    "type": "Network Issue",
+    "description": "Internet connection is down"
+  },
+  {
+    "timestamp": "2025-01-03T15:00:00.000000",
+    "type": "System Crash",
+    "description": "Mainframe unexpectedly rebooted."
+  }
+]
+```
 
 File Structure
 ```bash
@@ -71,6 +137,7 @@ incident-response/
 ├── requirements.txt      # Project dependencies
 └── README.md             # Project documentation
 ```
-
+### Notes
+1. **Customizing the API Key:** You can change the default API key and customize it to any value you want, to change the default API key,  update the **API_KEY** variable in the **incident_response.py** file.
 ### License
 This project is licensed under the MIT License.
