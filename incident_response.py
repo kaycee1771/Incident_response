@@ -1,11 +1,13 @@
 import os
 import json
 import datetime
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, abort
 
 app = Flask(__name__)
 LOG_FILE = "incident_logs.json"  # File to store incident logs
 
+# API Key for authentication
+API_KEY = "myownapi"
 
 # Helper function to log incidents
 def log_incident(incident_type, description):
@@ -15,21 +17,30 @@ def log_incident(incident_type, description):
         "description": description
     }
 
-    # Create the file if it doesn't exist
+    # Creates the file if it doesn't exist
     if not os.path.exists(LOG_FILE):
         with open(LOG_FILE, "w") as f:
             json.dump([], f)
 
-    # Load existing logs
+    # Loads existing logs
     with open(LOG_FILE, "r") as f:
         logs = json.load(f)
 
-    # Append the new incident to the logs
+    # Appends the new incident to the logs
     logs.append(incident)
 
     # Write back to the file
     with open(LOG_FILE, "w") as f:
         json.dump(logs, f)
+
+
+# To check the API key
+@app.before_request
+def check_api_key():
+    if request.endpoint not in ('index', 'invalid_key'): 
+        api_key = request.headers.get("x-api-key")
+        if api_key != API_KEY:
+            abort(401, description="Unauthorized: Invalid API Key")
 
 
 # Route to log a new incident
@@ -56,6 +67,16 @@ def get_logs():
         logs = json.load(f)
 
     return jsonify(logs)
+
+
+@app.errorhandler(401)
+def invalid_key(error):
+    return jsonify({"error": str(error)}), 401
+
+
+@app.route('/')
+def index():
+    return jsonify({"message": "Welcome to the Incident Response System!"})
 
 
 if __name__ == '__main__':
